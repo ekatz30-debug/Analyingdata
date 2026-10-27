@@ -2,4 +2,38 @@
 title: "Analyzing US Census Data"
 author: "ekatz30-debug"
 format: html
+execute:
+  echo: false
 ---
+
+```{r}
+#| message: false
+library(tidyverse)
+library(tidycensus)
+library(sf)
+```
+
+```{r}
+#| message: false
+#| cache: true
+income_tx <- get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  year = 2020,
+  state = "TX",
+  geometry = TRUE
+)
+```
+
+```{r}
+ggplot(income_tx) +
+  geom_sf(aes(fill = estimate)) +
+  scale_fill_viridis_c(option = "viridis", labels = scales::label_dollar()) +
+  theme_minimal() +
+  labs(
+    title = "Median Household Income in Texas Counties",
+    subtitle = "2016-2020 American Community Survey",
+    caption = "Source: US Census Bureau",
+    fill = "Income"
+  )
+```
