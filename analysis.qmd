@@ -102,3 +102,79 @@ edu_state |>
     plot.caption = element_text(hjust = 0, color = "#52627A")
   )
 ```
+
+## California Median Age
+
+```{r}
+#| message: false
+ca_age <- get_acs(
+  geography = "county",
+  variables = c("B01002_001", "B01003_001"),
+  year = 2020,
+  state = "CA",
+  output = "wide",
+  geometry = FALSE
+)
+```
+
+```{r}
+ca_age |>
+  select(
+    NAME,
+    median_age = B01002_001E,
+    population = B01003_001E
+  ) |>
+  mutate(
+    team = case_when(
+      NAME == "Los Angeles County, California" ~ "LA Chargers + Rams",
+      NAME == "San Francisco County, California" ~ "San Francisco 49ers",
+      TRUE ~ NA_character_
+    )
+  ) |>
+  ggplot(aes(x = population, y = median_age)) +
+  geom_point(color = "#AAB4C3", alpha = 0.75, size = 2.5) +
+  geom_point(
+    data = \(data) filter(data, !is.na(team)),
+    aes(fill = team),
+    shape = 21,
+    color = "#F9C74F",
+    stroke = 1.2,
+    size = 4.5
+  ) +
+  ggrepel::geom_text_repel(
+    data = \(data) filter(data, !is.na(team)),
+    aes(label = stringr::str_remove(NAME, ", California")),
+    color = "#142B4A",
+    fontface = "bold",
+    max.overlaps = Inf,
+    show.legend = FALSE
+  ) +
+  scale_x_log10(labels = scales::label_comma()) +
+  scale_fill_manual(
+    name = "California NFL spotlight",
+    values = c(
+      "LA Chargers + Rams" = "#2878B5",
+      "San Francisco 49ers" = "#AA0000"
+    )
+  ) +
+  labs(
+    title = "California Counties: A West Coast Football Rivalry",
+    subtitle = "Chargers and Rams in Los Angeles; 49ers in San Francisco",
+    x = "County population (log scale)",
+    y = "Median age (years)",
+    caption = "Source: ACS 5-year estimates via tidycensus"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "#F4F7FC", color = NA),
+    panel.background = element_rect(fill = "#F4F7FC", color = NA),
+    plot.title = element_text(face = "bold", color = "#142B4A", size = 17),
+    plot.subtitle = element_text(color = "#46566C"),
+    panel.grid.major = element_line(color = "#DCE3ED"),
+    panel.grid.minor = element_blank(),
+    axis.title = element_text(color = "#142B4A", face = "bold"),
+    legend.position = "top",
+    legend.title = element_text(face = "bold", color = "#142B4A"),
+    plot.caption = element_text(color = "#46566C", hjust = 0)
+  )
+```
