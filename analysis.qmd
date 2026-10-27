@@ -25,6 +25,7 @@ income_tx <- get_acs(
 )
 ```
 
+
 ```{r}
 ggplot(income_tx) +
   geom_sf(aes(fill = estimate)) +
@@ -35,5 +36,69 @@ ggplot(income_tx) +
     subtitle = "2016-2020 American Community Survey",
     caption = "Source: US Census Bureau",
     fill = "Income"
+  )
+```
+```{r}
+#| message: false
+edu_state <- get_acs(
+  geography = "state",
+  variables = c(
+    "B15003_001",
+    "B15003_022",
+    "B15003_023",
+    "B15003_024",
+    "B15003_025"
+  ),
+  summary_var = "B15003_001",
+  year = 2020
+)
+```
+
+```{r}
+#| fig-height: 12
+#| fig-width: 10
+edu_state |>
+  filter(
+    NAME != "Puerto Rico",
+    variable %in% c("B15003_022", "B15003_023", "B15003_024", "B15003_025")
+  ) |>
+  group_by(NAME) |>
+  summarise(
+    percent = sum(estimate) / first(summary_est) * 100,
+    .groups = "drop"
+  ) |>
+  mutate(NAME = reorder(NAME, percent)) |>
+  ggplot(aes(x = NAME, y = percent)) +
+  geom_col(aes(fill = percent), width = 0.78, show.legend = FALSE) +
+  geom_text(
+    aes(label = scales::percent(percent / 100, accuracy = 1)),
+    hjust = -0.18,
+    size = 2.7,
+    color = "#243447"
+  ) +
+  coord_flip() +
+  scale_fill_viridis_c(option = "magma") +
+  scale_y_continuous(
+    labels = scales::label_percent(scale = 1),
+    expand = expansion(mult = c(0, 0.12))
+  ) +
+  labs(
+    title = "Bachelor's Degree or Higher by State",
+    subtitle = "Share of adults with a bachelor's degree or higher",
+    x = "State",
+    y = "Adults with a bachelor's degree or higher (%)",
+    caption = "Source: US Census Bureau, 2016-2020 American Community Survey"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "#F7F8FC", color = NA),
+    panel.background = element_rect(fill = "#F7F8FC", color = NA),
+    plot.title = element_text(face = "bold", size = 18, color = "#18243A"),
+    plot.subtitle = element_text(color = "#52627A"),
+    axis.text.y = element_text(size = 8),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(color = "#DCE2EC"),
+    plot.caption = element_text(hjust = 0, color = "#52627A")
   )
 ```
